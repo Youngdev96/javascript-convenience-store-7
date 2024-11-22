@@ -6,7 +6,8 @@ class App {
   }
 
   async run() {
-    this.controller.preparePayment();
+    const inventory = this.controller.preparePayment();
+    this.controller.proceedPayment(inventory);
   }
 }
 
