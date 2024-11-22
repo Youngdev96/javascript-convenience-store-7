@@ -1,6 +1,7 @@
 import { Console } from '@woowacourse/mission-utils';
 import MESSAGE from '../utils/constants/message.js';
 import InventoryManagement from '../service/InventoryManagement.js';
+import InventoryFormatter from '../utils/formatters/InventoryFormatter.js';
 
 class OutputView {
   constructor() {
@@ -12,8 +13,11 @@ class OutputView {
   }
 
   printInventory(inventory) {
-    const inventoryText = this.inventoryMgt.setInventoryText(inventory);
-    inventoryText.forEach((item) => Console.print(item));
+    const inventoryArray = this.inventoryMgt.setInventoryArr(inventory);
+    inventoryArray
+      .map((item) => InventoryFormatter.formatInventory(item))
+      .forEach((line) => Console.print(line));
+    Console.print('');
   }
 }
 

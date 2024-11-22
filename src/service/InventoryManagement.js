@@ -1,18 +1,22 @@
 import Inventory from '../model/Inventory.js';
-import InventoryFormatter from '../utils/formatters/InventoryFormatter.js';
 
 class InventoryManagement {
   constructor() {
     this.inventory = new Inventory();
   }
 
-  getInventoryValue(stockObj) {
-    return stockObj.map((item) => Object.values(item));
-  }
+  setInventoryArr(inventory) {
+    const result = [];
 
-  setInventoryText(stockObj) {
-    const stock = this.getInventoryValue(stockObj);
-    return stock.map((item) => InventoryFormatter.formatInventory(item));
+    Object.entries(inventory).forEach(([name, data]) => {
+      const { price, variants } = data;
+
+      variants.forEach((variant) => {
+        result.push([name, price, variant.quantity, variant.promotion]);
+      });
+    });
+
+    return result;
   }
 }
 export default InventoryManagement;

@@ -1,52 +1,67 @@
-import fs from 'fs';
-import path from 'path';
+import Product from './Product.js';
 
 class Inventory {
-  loadProducts() {
-    const filePath = path.join(process.cwd(), 'public', 'products.md');
-    const mdContents = fs.readFileSync(filePath, 'utf-8');
-    const headers = this.getInventoryHeader(mdContents);
-    const items = this.getInventoryContents(mdContents);
-    return { headers, items };
-  }
-
-  getInventoryHeader(mdContents) {
-    const lines = mdContents.trim().split('\n');
-    const header = lines[0].split(',').map((title) => title.trim());
-    return header;
-  }
-
-  getInventoryContents(mdContents) {
-    const lines = mdContents.trim().split('\n');
-    let inventory = [];
-    for (let line = 1; line < lines.length; line++) {
-      let item = lines[line].split(',').map((content) => content.trim());
-      inventory.push(item);
-    }
-    return inventory;
+  constructor() {
+    this.product = new Product();
   }
 
   createInventoryObj() {
-    const { headers, items } = this.loadProducts();
-    const inventory = items.map((item) => this.createItemObject(headers, item));
-    return inventory;
+    const { products } = this.product.loadProducts();
+    const baseInventory = this.createProductObj(products);
+    const normalizedInventory = this.normalizeVariants(baseInventory);
+
+    return normalizedInventory;
   }
 
-  createItemObject(headers, item) {
-    return headers.reduce((product, header, index) => {
-      product[header] = this.formatValue(header, item[index]);
-      return product;
+  createProductObj(products) {
+    return products.reduce((inventory, [name, price, quantity, promotion]) => {
+      if (!inventory[name]) {
+        inventory[name] = {
+          price: Number(price),
+          variants: [],
+        };
+      }
+
+      inventory[name].variants.push({
+        quantity: Number(quantity),
+        promotion: this.formatPromotion(promotion),
+      });
+
+      return inventory;
     }, {});
   }
 
-  formatValue(header, value) {
-    if (header === 'price' || header === 'quantity') {
-      return Number(value);
-    }
-    if (value === 'null') {
+  normalizeVariants(inventory) {
+    const normalized = { ...inventory };
+
+    Object.keys(normalized).forEach((name) => {
+      const product = normalized[name];
+      if (this.needsNormalVariant(product.variants)) {
+        product.variants.push(this.createNormalVariant());
+      }
+    });
+
+    return normalized;
+  }
+
+  needsNormalVariant(variants) {
+    const hasPromoVariant = variants.some((v) => v.promotion !== null);
+    const hasNormalVariant = variants.some((v) => v.promotion === null);
+    return hasPromoVariant && !hasNormalVariant;
+  }
+
+  createNormalVariant() {
+    return {
+      quantity: 0,
+      promotion: null,
+    };
+  }
+
+  formatPromotion(promotion) {
+    if (promotion === 'null') {
       return null;
     }
-    return value;
+    return promotion;
   }
 }
 
