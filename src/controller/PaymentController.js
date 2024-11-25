@@ -17,7 +17,7 @@ class PaymentController {
   }
 
   proceedPayment(inventory) {
-    this.inputView.userOrderInput();
+    this.inputView.userOrderInput(inventory);
   }
 
   finishPayment() {}
